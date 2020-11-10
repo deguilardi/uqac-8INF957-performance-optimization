@@ -6,14 +6,13 @@ Original french instructions file can be found [here](https://raw.githubusercont
 
 ## The scenario
 
-A system performs the processing of requests from various providers (F). Each supplier sends asynchronously and each request is inserted and stored in a transformer (T).
+A system performs the processing of requests from various supplier (F). Each supplier sends their requests asynchronously and each request is inserted and stored in a transformer (T).
 
 The system has a simple operation (performed in a loop)
-* Retrieve a request in Tx
-* Process Tx
-* Return an Rx
-* Respond to Tx
-* Go to Tx + 1
+* Receive a request in Tx;
+* Process Tx;
+* Return an response Rx to Tx;
+* Go to Tx + 1;
 * ...
 
 The problem is that Tx can only contain a certain amount of requests (buffer) and when the maximum capacity is reached, it rejects new requests.
@@ -24,28 +23,28 @@ Your goal is to create a system that will optimize the treatment according to th
 
 ### Supplier "F"
 
-* Each supplier is a Thread
-* It performs the following functions
-     * Generate requests (variable processing time - Sleep with random)
-     * Receive responses / failures
-     * Log events (ex: if launched in Debug mode, written in the console)
+* Each supplier is a Thread.
+* It performs the following operations:
+     * Generate requests (variable processing time - Sleep with random);
+     * Receive responses / errors;
+     * Log events (ex: if launched in Debug mode, written in the console).
 
 ### The "T" transformer
 
-* Tx is associated with Fx
-* A transformer may contain a limited capacity of memory requests
-     * For example, with a capacity of 10
-     * VACUUM (0), OK (3), DANGER (7) AND MAX (10)
-* Any request exceeding MAX is automatically rejected and returns a failure to Fx
-* Each T is an object which can perform the following functions
-     * Receive a request
-     * Return a response / failure
+* Tx is associated with Fx.
+* A transformer may contain a limited buffer capacity.
+     * For example, with a capacity of 10.
+     * IDLE (0), OK (3), DANGER (7) AND MAX (10).
+* Any request exceeding MAX is automatically rejected and returns a failure to Fx.
+* Each T is an object which can perform the following functions:
+     * Receive a request;
+     * Return a response / errors.
 
 ### The "S" system
 
-* Composed of a list of transformers
-* The system always starts with the Sdefault processing strategy
-* After a certain number of treatments (to be determined), the system falls into ``maintenance`` and displays performance statistics (see below)
+* Composed of a list of transformers.
+* The system always starts with the S<sub>default</sub> processing strategy.
+* After a certain number of treatments (to be determined), the system falls into ``maintenance`` and displays performance statistics (see below).
 
 ## Solutions
 
@@ -67,11 +66,11 @@ Therefore, we must calculate the cost of treatment for all the operations of the
 
 ## The strategies
 
-* Default strategy (S<sub>default</sub>): The system is running in circles. See the scenario.
+* Default strategy (S<sub>default</sub>): The system is running in loops. See the scenario.
 * Strategy by unbalancing (D<sub>imbalance</sub>): When a Tx is fuller than the other T, then we re-establish the equilibrium then we return to S<sub>default</sub>.
 * Overload strategy (S<sub>overload</sub>): When a Tx is dangerously full, it is emptied until OK then it returns to S<sub>default</sub>.
 * Any other strategy that you think is appropriate.
-* You must find a mechanism for managing strategies as objectively as possible! (a state machine?).
+* You must find mechanisms for managing the strategies as objectively as possible! (a state machine?).
 
 ## Constraints
 
