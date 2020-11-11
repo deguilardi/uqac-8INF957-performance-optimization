@@ -19,7 +19,7 @@ public class MySystemOptimized extends MySystemAbstract implements MySystemInter
     protected void loop(Integer i){
         debug("==================== loop " + i + " ====================");
         balanceTransformers();
-        for(Pair<Transformer, Supplier> pair : transformers){
+        for(Pair<Transformer, Supplier> pair : suppliers){
             Transformer transformer = pair.getKey();
             Supplier supplier = pair.getValue();
             transformer.processFor(supplier);
@@ -30,7 +30,7 @@ public class MySystemOptimized extends MySystemAbstract implements MySystemInter
 
         // Order transformers list by load
         // Has to be a clone, to not loose concurrent references
-        List< Pair<Transformer, Supplier> > transformers = new ArrayList<>(this.transformers);
+        List< Pair<Transformer, Supplier> > transformers = new ArrayList<>(this.suppliers);
         transformers.sort(Comparator.comparing(transformer -> transformer.getKey().getLoad()));
 
         // Traverse transformers, comparing the the edges load differences
@@ -50,8 +50,10 @@ public class MySystemOptimized extends MySystemAbstract implements MySystemInter
             Supplier respondToSupplier = fromPair.getValue();
             for(Integer i = 0; i < loadDifference / 2; i++){
                 Request request = from.pollRequest();
-                request.unbalance();
-                to.pushRequest(request, respondToSupplier);
+                if(request != null) {
+                    request.unbalance();
+                    to.pushRequest(request, respondToSupplier);
+                }
             }
         }
     }

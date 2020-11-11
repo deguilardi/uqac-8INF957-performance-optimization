@@ -12,7 +12,7 @@ public class MySystemDefault extends MySystemAbstract implements MySystemInterfa
     @Override
     protected void loop(Integer i){
         debug("==================== loop " + i + " ====================");
-        for(Pair<Transformer, Supplier> pair : transformers){
+        for(Pair<Transformer, Supplier> pair : suppliers){
             Transformer transformer = pair.getKey();
             Supplier supplier = pair.getValue();
             transformer.processFor(supplier);

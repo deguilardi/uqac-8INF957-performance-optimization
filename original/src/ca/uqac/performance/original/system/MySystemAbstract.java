@@ -18,7 +18,7 @@ import static ca.uqac.performance.original.Debug.output;
 public abstract class MySystemAbstract implements MySystemInterface{
 
     protected static MySystemInterface instance;
-    protected static List< Pair<Transformer, Supplier> > transformers = new LinkedList<>();
+    protected static List< Pair<Transformer, Supplier> > suppliers = new LinkedList<>();
     private Boolean isRunning = false;
 
     protected MySystemAbstract(){
@@ -42,20 +42,21 @@ public abstract class MySystemAbstract implements MySystemInterface{
         if(isRunning){
             return;
         }
-        isRunning = true;
-        output("Running MySystem... This might take a while. Wait, don't freak out!");
-        for(Integer i = 0; i < NUM_LOOPS_TO_MAINTENANCE; i++){
-            Sleeper.unsafeSleep(LOOP_INTERVAL);
-            loop(i);
-        }
-        enterMaintenanceMode();
+
+        new Thread(() -> {
+            isRunning = true;
+            output("Running MySystem... This might take a while. Wait, don't freak out!");
+            for(Integer i = 0; i < NUM_LOOPS_TO_MAINTENANCE; i++){
+                Sleeper.unsafeSleep(LOOP_INTERVAL);
+                loop(i);
+            }
+            enterMaintenanceMode();
+        }).start();
     }
 
     @Override
-    public void addSupplier(Supplier supplier) {
-        Transformer transformer = new Transformer(transformers.size());
-        transformers.add(new Pair<>(transformer, supplier));
-        output("Added supplier: "+ supplier.getId() + ", for transformer: " + transformer.getId());
+    public void setSuppliers(List<Pair<Transformer, Supplier>> suppliers) {
+        this.suppliers = suppliers;
     }
 
     @Override
@@ -70,7 +71,7 @@ public abstract class MySystemAbstract implements MySystemInterface{
 
     private void enterMaintenanceMode(){
         debug("entered maintenance mode");
-        for(Pair<Transformer, Supplier> pair : transformers){
+        for(Pair<Transformer, Supplier> pair : suppliers){
             Supplier supplier = pair.getValue();
             supplier.interrupt();
             if(DEBUG_MODE) {
@@ -81,7 +82,7 @@ public abstract class MySystemAbstract implements MySystemInterface{
         Integer successCount = 0;
         Integer rejectedCount = 0;
         Integer totalCostCount = 0;
-        for(Pair<Transformer, Supplier> pair : transformers){
+        for(Pair<Transformer, Supplier> pair : suppliers){
             Supplier supplier = pair.getValue();
             supplier.logEventsSummary();
             requestCount += supplier.getRequestCount();
@@ -102,7 +103,7 @@ public abstract class MySystemAbstract implements MySystemInterface{
     }
 
     private Transformer getTransformerFor(Supplier supplier){
-        for(Pair<Transformer, Supplier> pair : transformers){
+        for(Pair<Transformer, Supplier> pair : suppliers){
             if(pair.getValue().equals(supplier)){
                 return pair.getKey();
             }
