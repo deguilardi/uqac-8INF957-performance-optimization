@@ -36,7 +36,7 @@ public class Transformer {
         checkState();
     }
 
-    void processFor(Supplier supplier) {
+    public void processFor(Supplier supplier) {
         if(buffer.isEmpty()){
             debug("Transformer buffer is empty.");
             return;
@@ -55,6 +55,10 @@ public class Transformer {
 
     public Integer getId() {
         return id;
+    }
+
+    public Integer getBufferSize(){
+        return buffer.size();
     }
 
     private void checkState(){

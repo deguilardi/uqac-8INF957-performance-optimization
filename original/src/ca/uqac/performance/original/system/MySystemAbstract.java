@@ -1,5 +1,8 @@
-package ca.uqac.performance.original;
+package ca.uqac.performance.original.system;
 
+import ca.uqac.performance.original.Request;
+import ca.uqac.performance.original.Supplier;
+import ca.uqac.performance.original.Transformer;
 import ca.uqac.performance.original.util.Sleeper;
 import javafx.util.Pair;
 
@@ -7,22 +10,24 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static ca.uqac.performance.original.Config.*;
+import static ca.uqac.performance.original.Config.NUM_SUPPLIERS;
 import static ca.uqac.performance.original.Debug.debug;
 import static ca.uqac.performance.original.Debug.output;
 
-public class MySystem {
+public abstract class MySystemAbstract implements MySystemInterface{
 
-    private static MySystem instance = new MySystem();
-    private static List< Pair< Transformer, Supplier > > transformers = new LinkedList<>();;
+    protected static MySystemInterface instance;
+    protected static List< Pair<Transformer, Supplier> > transformers = new LinkedList<>();
     private Boolean isRunning = false;
 
-    private MySystem(){
+    protected MySystemAbstract(){
     }
 
-    public static MySystem systemInstance(){
+    public static MySystemInterface systemInstance(){
         return instance;
     }
 
+    @Override
     public void run(){
         if(isRunning){
             return;
@@ -36,22 +41,19 @@ public class MySystem {
         enterMaintenanceMode();
     }
 
+    @Override
     public void addSupplier(Supplier supplier) {
         transformers.add(new Pair<>(new Transformer(transformers.size()), supplier));
     }
 
+    @Override
     public void pushRequest(Request request, Supplier fromSupplier) {
         Transformer transformer = getTransformerFor(fromSupplier);
         transformer.pushRequest(request, fromSupplier);
     }
 
-    private void loop(Integer i){
-        debug("==================== loop " + i + " ====================");
-        for(Pair<Transformer, Supplier> pair : transformers){
-            Transformer transformer = pair.getKey();
-            Supplier supplier = pair.getValue();
-            transformer.processFor(supplier);
-        }
+    protected void loop(Integer i) {
+        debug("loop not implemented");
     }
 
     private void enterMaintenanceMode(){

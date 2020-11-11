@@ -1,5 +1,6 @@
 package ca.uqac.performance.original;
 
+import ca.uqac.performance.original.system.MySystemDefault;
 import ca.uqac.performance.original.util.Sleeper;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -7,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static ca.uqac.performance.original.Config.REQUEST_INTERVAL;
 import static ca.uqac.performance.original.Debug.output;
-import static ca.uqac.performance.original.MySystem.systemInstance;
+import static ca.uqac.performance.original.system.MySystemDefault.systemInstance;
 
 public class Supplier extends Thread{
 
@@ -34,7 +35,7 @@ public class Supplier extends Thread{
     }
 
     void generateRequest(){
-        systemInstance().pushRequest(new Request(), this);
+        MySystemDefault.systemInstance().pushRequest(new Request(), this);
         requestCount.set(requestCount.get() + 1);
     }
 
@@ -47,14 +48,14 @@ public class Supplier extends Thread{
         }
     }
 
-    void logEventsDetails(){
+    public void logEventsDetails(){
         output("==================== LOGGING EVENTS FOR SUPPLIER #" +id+ " ====================");
         for(Response response : responses){
             output(response.toString());
         }
     }
 
-    void logEventsSummary(){
+    public void logEventsSummary(){
         output("==================== SUMMARY OF EVENTS FOR SUPPLIER #" +id+ " ====================");
         output("request  : " + requestCount);
         output("success  : " + successCount);
