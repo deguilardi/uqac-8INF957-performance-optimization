@@ -6,13 +6,8 @@ import javafx.util.Pair;
 
 import static ca.uqac.performance.original.Debug.debug;
 
+@SuppressWarnings("unused")
 public class MySystemDefault extends MySystemAbstract implements MySystemInterface {
-
-    public static void init(){
-        if(instance == null){
-            instance = new MySystemDefault();
-        }
-    }
 
     @Override
     protected void loop(Integer i){

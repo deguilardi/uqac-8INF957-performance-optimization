@@ -6,6 +6,7 @@ import ca.uqac.performance.original.Transformer;
 import ca.uqac.performance.original.util.Sleeper;
 import javafx.util.Pair;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -21,6 +22,15 @@ public abstract class MySystemAbstract implements MySystemInterface{
     private Boolean isRunning = false;
 
     protected MySystemAbstract(){
+    }
+
+    public static void initSystemWith(String className) {
+        try {
+            Class myClass = Class.forName(className);
+            instance = (MySystemInterface) myClass.getDeclaredConstructor().newInstance();
+        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 
     public static MySystemInterface systemInstance(){
@@ -43,7 +53,9 @@ public abstract class MySystemAbstract implements MySystemInterface{
 
     @Override
     public void addSupplier(Supplier supplier) {
-        transformers.add(new Pair<>(new Transformer(transformers.size()), supplier));
+        Transformer transformer = new Transformer(transformers.size());
+        transformers.add(new Pair<>(transformer, supplier));
+        output("Added supplier: "+ supplier.getId() + ", for transformer: " + transformer.getId());
     }
 
     @Override
@@ -61,24 +73,30 @@ public abstract class MySystemAbstract implements MySystemInterface{
         for(Pair<Transformer, Supplier> pair : transformers){
             Supplier supplier = pair.getValue();
             supplier.interrupt();
-            supplier.logEventsDetails();
+            if(DEBUG_MODE) {
+                supplier.logEventsDetails();
+            }
         }
         Integer requestCount = 0;
         Integer successCount = 0;
         Integer rejectedCount = 0;
+        Integer totalCostCount = 0;
         for(Pair<Transformer, Supplier> pair : transformers){
             Supplier supplier = pair.getValue();
             supplier.logEventsSummary();
             requestCount += supplier.getRequestCount();
             successCount += supplier.getSuccessCount();
             rejectedCount += supplier.getRejectedCount();
+            totalCostCount += supplier.getTotalCost();
         }
 
+        output("");
         output("==================== MY SYSTEM RESULTS ====================");
-        output("request avg  : " + (float) requestCount / NUM_SUPPLIERS);
-        output("success avg  : " + (float) successCount / NUM_SUPPLIERS);
-        output("rejected avg : " + (float) rejectedCount / NUM_SUPPLIERS);
-        output("lost avg     : " + (float) (requestCount - successCount - rejectedCount) / NUM_SUPPLIERS);
+        output("request avg    : " + (float) requestCount / NUM_SUPPLIERS);
+        output("success avg    : " + (float) successCount / NUM_SUPPLIERS);
+        output("rejected avg   : " + (float) rejectedCount / NUM_SUPPLIERS);
+        output("lost avg       : " + (float) (requestCount - successCount - rejectedCount) / NUM_SUPPLIERS);
+        output("total cost avg : " + (float) totalCostCount / NUM_SUPPLIERS);
 
         isRunning = false;
     }

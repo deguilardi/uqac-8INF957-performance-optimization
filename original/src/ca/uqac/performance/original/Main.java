@@ -1,10 +1,8 @@
 package ca.uqac.performance.original;
 
-import ca.uqac.performance.original.system.MySystemDefault;
-import ca.uqac.performance.original.system.MySystemOptimized;
-
 import static ca.uqac.performance.original.Config.NUM_SUPPLIERS;
 import static ca.uqac.performance.original.Config.OPTIMIZED_MODE;
+import static ca.uqac.performance.original.system.MySystemAbstract.initSystemWith;
 import static ca.uqac.performance.original.system.MySystemAbstract.systemInstance;
 
 public class Main {
@@ -17,9 +15,9 @@ public class Main {
 
     private static void initSystem(){
         if(OPTIMIZED_MODE) {
-            MySystemOptimized.init();
+            initSystemWith("ca.uqac.performance.original.system.MySystemOptimized");
         } else {
-            MySystemDefault.init();
+            initSystemWith("ca.uqac.performance.original.system.MySystemDefault");
         }
     }
 

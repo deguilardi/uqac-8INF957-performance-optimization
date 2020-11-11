@@ -1,23 +1,24 @@
 package ca.uqac.performance.original.system;
 
+import ca.uqac.performance.original.Request;
 import ca.uqac.performance.original.Supplier;
 import ca.uqac.performance.original.Transformer;
 import javafx.util.Pair;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import static ca.uqac.performance.original.Config.OPTIMIZATION_BALANCE_THRESHOLD;
 import static ca.uqac.performance.original.Debug.debug;
 
+@SuppressWarnings("unused")
 public class MySystemOptimized extends MySystemAbstract implements MySystemInterface {
-
-    public static void init(){
-        if(instance == null){
-            instance = new MySystemOptimized();
-        }
-    }
 
     @Override
     protected void loop(Integer i){
         debug("==================== loop " + i + " ====================");
-        checkBalance();
+        balanceTransformers();
         for(Pair<Transformer, Supplier> pair : transformers){
             Transformer transformer = pair.getKey();
             Supplier supplier = pair.getValue();
@@ -25,10 +26,33 @@ public class MySystemOptimized extends MySystemAbstract implements MySystemInter
         }
     }
 
-    private void checkBalance(){
-        for(Pair<Transformer, Supplier> pair : transformers){
-            Transformer transformer = pair.getKey();
-            transformer.getBufferSize();
+    private void balanceTransformers(){
+
+        // Order transformers list by load
+        // Has to be a clone, to not loose concurrent references
+        List< Pair<Transformer, Supplier> > transformers = new ArrayList<>(this.transformers);
+        transformers.sort(Comparator.comparing(transformer -> transformer.getKey().getLoad()));
+
+        // Traverse transformers, comparing the the edges load differences
+        for(Integer i = transformers.size(); i > transformers.size() / 2; i--){
+            Pair<Transformer, Supplier> tailPair = transformers.get(i - 1);
+            Pair<Transformer, Supplier> headPair = transformers.get(transformers.size() - i);
+            balancePairs(tailPair, headPair);
+        }
+    }
+
+    private void balancePairs(Pair<Transformer, Supplier> fromPair, Pair<Transformer, Supplier> toPair){
+        Transformer from = fromPair.getKey();
+        Transformer to = toPair.getKey();
+        Integer loadDifference = from.getLoad() - to.getLoad();
+        if(loadDifference >= OPTIMIZATION_BALANCE_THRESHOLD){
+            debug("Balancing difference: " + loadDifference);
+            Supplier respondToSupplier = fromPair.getValue();
+            for(Integer i = 0; i < loadDifference / 2; i++){
+                Request request = from.pollRequest();
+                request.unbalance();
+                to.pushRequest(request, respondToSupplier);
+            }
         }
     }
 }

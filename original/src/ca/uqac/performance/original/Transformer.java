@@ -29,26 +29,31 @@ public class Transformer {
     public void pushRequest(Request request, Supplier fromSupplier) {
         if(state.equals(State.MAX)) {
             debug("Buffer is full.");
-            fromSupplier.receiveResponse(Response.factoryRejected(this, request));
+            request.reject();
+            fromSupplier.receiveResponseFor(request);
             return;
         }
         buffer.add(request);
         checkState();
     }
 
-    public void processFor(Supplier supplier) {
-        if(buffer.isEmpty()){
-            debug("Transformer buffer is empty.");
-            return;
-        }
+    public Request pollRequest(){
+        return buffer.poll();
+    }
 
+    public void processFor(Supplier supplier) {
         if(isProcessing){
             debug("Transformer busy.");
             return;
         }
-        isProcessing = true;
 
-        Request headRequest = buffer.poll();
+        Request headRequest = pollRequest();
+        if(headRequest == null){
+            debug("Transformer buffer is empty.");
+            return;
+        }
+
+        isProcessing = true;
         Processor processor = new Processor(this, headRequest, supplier);
         processor.start();
     }
@@ -57,7 +62,7 @@ public class Transformer {
         return id;
     }
 
-    public Integer getBufferSize(){
+    public Integer getLoad(){
         return buffer.size();
     }
 
@@ -89,7 +94,8 @@ public class Transformer {
             super.run();
             debug("started processing.");
             Sleeper.unsafeSleep(request.getProcessingTime());
-            supplier.receiveResponse(Response.factorySuccess(transformer, request));
+            request.respond();
+            supplier.receiveResponseFor(request);
             checkState();
             isProcessing = false;
             debug("finished processing.");
