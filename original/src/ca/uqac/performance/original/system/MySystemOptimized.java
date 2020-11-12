@@ -9,20 +9,40 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import static ca.uqac.performance.original.Config.OPTIMIZATION_BALANCE_THRESHOLD;
+import static ca.uqac.performance.original.Config.*;
 import static ca.uqac.performance.original.Debug.debug;
+import static ca.uqac.performance.original.Transformer.State.DANGER;
+import static ca.uqac.performance.original.Transformer.State.OK;
 
 @SuppressWarnings("unused")
 public class MySystemOptimized extends MySystemAbstract implements MySystemInterface {
 
+    private boolean[] blockages = new boolean[NUM_SUPPLIERS];
+
     @Override
     protected void loop(Integer i){
-        balanceTransformers();
+        if(OPTIMIZE_IMBALANCE) {
+            balanceTransformers();
+        }
+        if(OPTIMIZE_OVERLOAD) {
+            checkLoad();
+        }
         super.loop(i);
         for(Pair<Transformer, Supplier> pair : suppliers){
             Transformer transformer = pair.getKey();
             Supplier supplier = pair.getValue();
             transformer.processFor(supplier);
+        }
+    }
+
+    @Override
+    public void pushRequest(Request request, Supplier fromSupplier) {
+        Transformer transformer = getTransformerFor(fromSupplier);
+        if(blockages[transformer.getId()]) {
+            request.reject();
+            fromSupplier.receiveResponseFor(request);
+        } else {
+            super.pushRequest(request, fromSupplier);
         }
     }
 
@@ -53,6 +73,18 @@ public class MySystemOptimized extends MySystemAbstract implements MySystemInter
                 if(request != null) {
                     to.pushRequest(request, respondToSupplier);
                 }
+            }
+        }
+    }
+
+    private void checkLoad() {
+        for(int i = 0; i < blockages.length; i++){
+            boolean blocked = blockages[i];
+            Transformer transformer = suppliers.get(i).getKey();
+            if(blocked && transformer.getState() == OK){
+                blockages[i] = false;
+            } else if (transformer.getState() == DANGER){
+                blockages[i] = true;
             }
         }
     }

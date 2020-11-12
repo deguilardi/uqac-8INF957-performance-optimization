@@ -137,6 +137,7 @@ public abstract class MySystemAbstract implements MySystemInterface{
         output("cost total   : " + String.format("%" + 10 + "s", totalCostCount));
 
         isRunning = false;
+        System.exit(0);
     }
 
     protected Transformer getTransformerFor(Supplier supplier){

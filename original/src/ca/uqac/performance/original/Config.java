@@ -2,7 +2,10 @@ package ca.uqac.performance.original;
 
 public class Config {
     public static final Boolean DEBUG_MODE = false;
+
     public static final Boolean OPTIMIZED_MODE = true;
+    public static final Boolean OPTIMIZE_IMBALANCE = true;
+    public static final Boolean OPTIMIZE_OVERLOAD = true;
     public static final Integer OPTIMIZATION_BALANCE_THRESHOLD = 2;
 
     public static final Integer COST_DEFAULT = 1;
