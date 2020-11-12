@@ -9,38 +9,51 @@ import java.util.List;
 
 import static ca.uqac.performance.original.Config.*;
 
+/**
+ * A little user interface to display the transformers' loads
+ */
 public class Gui extends JFrame{
 
-    private static Gui instance;
-    private List<JProgressBar> progressBars = new ArrayList<>(NUM_SUPPLIERS);
-    private JPanel barsPanel;
+    private final static Gui instance = new Gui();
+    private final List<JProgressBar> progressBars = new ArrayList<>(NUM_SUPPLIERS);
+    private final JPanel barsPanel;
 
+    /**
+     * Constructor
+     */
     private Gui(){
         super("Performance Improvement Stats");
-
-        Integer height = 45 * NUM_SUPPLIERS / 2 ;
 
         barsPanel = new JPanel();
         add(barsPanel);
 
+        int height = 45 * NUM_SUPPLIERS / 2 ;
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(400,height);
         setVisible(true);
     }
 
-    public static void initGui(List<Pair<Transformer, Supplier>> suppliers){
-        instance = new Gui();
-        for(Pair<Transformer, Supplier> pair: suppliers){
-            instance.addTransformer(pair.getKey());
+    /**
+     * Builds the user interface based on supplier pairs.
+     * @param supplierPairs The supplier pairs.
+     */
+    public static void initGui(List<Pair<Transformer, Supplier>> supplierPairs){
+        for(Pair<Transformer, Supplier> supplierPair: supplierPairs){
+            instance.bindTransformer(supplierPair.getKey());
         }
         instance.barsPanel.revalidate();
+        initWatchLoop(supplierPairs);
+    }
 
+    /**
+     * Watch for suppliers changes.
+     * Will update progress bars along with loads.
+     * @param supplierPairs The supplier pairs.
+     */
+    private static void initWatchLoop(List<Pair<Transformer, Supplier>> supplierPairs) {
         new Thread(() -> {
-            while (true) {
-                if (!Sleeper.unsafeSleep(LOOP_INTERVAL * 10)) {
-                    break;
-                }
-                for (Pair<Transformer, Supplier> pair : suppliers) {
+            while (Sleeper.unsafeSleep(LOOP_INTERVAL * 10)) {
+                for (Pair<Transformer, Supplier> pair : supplierPairs) {
                     Transformer transformer = pair.getKey();
                     JProgressBar progressBar = instance.progressBars.get(transformer.getId());
                     progressBar.setValue(transformer.getLoad());
@@ -55,15 +68,17 @@ public class Gui extends JFrame{
         }).start();
     }
 
-    private void addTransformer(Transformer transformer) {
+    /**
+     * Bind a transformer to a progress bar.
+     * @param transformer A transformer to be bind and watched.
+     */
+    private void bindTransformer(Transformer transformer) {
         JPanel panel = new JPanel();
-
         JProgressBar progressBar = new JProgressBar(0, TRANSFORMER_BUFFER_MAX);
         progressBar.setValue(0);
         progressBar.setStringPainted(true);
         panel.add(progressBar);
         barsPanel.add(panel);
-
         progressBars.add(transformer.getId(), progressBar);
     }
 }

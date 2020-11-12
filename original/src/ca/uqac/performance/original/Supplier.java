@@ -6,8 +6,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static ca.uqac.performance.original.Config.*;
-import static ca.uqac.performance.original.Debug.output;
-import static ca.uqac.performance.original.system.MySystemAbstract.systemInstance;
+import static ca.uqac.performance.original.util.Debug.output;
+import static ca.uqac.performance.original.system.MySystem.systemInstance;
 
 public class Supplier extends Thread{
 

@@ -7,6 +7,9 @@ import javafx.util.Pair;
 
 import java.util.List;
 
+/**
+ * Interface that defines MySystem contract to Suppliers, Transformers and etc.
+ */
 public interface MySystemInterface {
     void run();
     void setSuppliers(List<Pair<Transformer, Supplier>> supplier);

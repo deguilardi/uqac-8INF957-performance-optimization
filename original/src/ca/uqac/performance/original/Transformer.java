@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import static ca.uqac.performance.original.Config.*;
-import static ca.uqac.performance.original.Debug.debug;
+import static ca.uqac.performance.original.util.Debug.debug;
 
 public class Transformer {
 

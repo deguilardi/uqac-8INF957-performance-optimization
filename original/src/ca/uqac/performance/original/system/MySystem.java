@@ -14,28 +14,40 @@ import java.util.List;
 
 import static ca.uqac.performance.original.Config.*;
 import static ca.uqac.performance.original.Config.NUM_SUPPLIERS;
-import static ca.uqac.performance.original.Debug.debug;
-import static ca.uqac.performance.original.Debug.output;
+import static ca.uqac.performance.original.util.Debug.debug;
+import static ca.uqac.performance.original.util.Debug.output;
 import static ca.uqac.performance.original.Transformer.State.DANGER;
 
-public abstract class MySystemAbstract implements MySystemInterface{
+public class MySystem implements MySystemInterface{
 
     protected static MySystemInterface instance;
-    protected static List< Pair<Transformer, Supplier> > suppliers = new LinkedList<>();
+    protected static List< Pair<Transformer, Supplier> > supplierPairs = new LinkedList<>();
     private Boolean isRunning = false;
 
-    protected MySystemAbstract(){
+    /**
+     * Block this class to be initialized.
+     */
+    protected MySystem(){
     }
 
+    /**
+     * initialize singleton with the "adapter" defined by the className.
+     * Utilize reflexion to perform initialization.
+     * @param className Adapter's full lass name (eg. "com.company.package.ClassName").
+     */
     public static void initSystemWith(String className) {
         try {
-            Class myClass = Class.forName(className);
+            Class<?> myClass = Class.forName(className);
             instance = (MySystemInterface) myClass.getDeclaredConstructor().newInstance();
         } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * Simply return singleton instance
+     * @return Singleton instance.
+     */
     public static MySystemInterface systemInstance(){
         return instance;
     }
@@ -58,8 +70,8 @@ public abstract class MySystemAbstract implements MySystemInterface{
     }
 
     @Override
-    public void setSuppliers(List<Pair<Transformer, Supplier>> suppliers) {
-        this.suppliers = suppliers;
+    public void setSuppliers(List<Pair<Transformer, Supplier>> supplierPairs) {
+        MySystem.supplierPairs = supplierPairs;
     }
 
     @Override
@@ -80,10 +92,10 @@ public abstract class MySystemAbstract implements MySystemInterface{
 
         // Order transformers list by load
         // Has to be a clone, to not loose concurrent references
-        List< Pair<Transformer, Supplier> > transformers = new ArrayList<>(this.suppliers);
+        List< Pair<Transformer, Supplier> > transformers = new ArrayList<>(supplierPairs);
         transformers.sort(Comparator.comparing(transformer -> transformer.getKey().getLoad()));
 
-        for(Integer i = transformers.size(); i > transformers.size() / 2; i--){
+        for(int i = transformers.size(); i > transformers.size() / 2; i--){
             Pair<Transformer, Supplier> tailPair = transformers.get(i - 1);
             Pair<Transformer, Supplier> headPair = transformers.get(transformers.size() - i);
             checkBalancePairs(tailPair, headPair);
@@ -93,10 +105,10 @@ public abstract class MySystemAbstract implements MySystemInterface{
     private void checkBalancePairs(Pair<Transformer, Supplier> fromPair, Pair<Transformer, Supplier> toPair){
         Transformer from = fromPair.getKey();
         Transformer to = toPair.getKey();
-        Integer loadDifference = from.getLoad() - to.getLoad();
-        if(loadDifference >= OPTIMIZATION_BALANCE_THRESHOLD){
+        int loadDifference = from.getLoad() - to.getLoad();
+        if(loadDifference >= OPTIMIZATION_IMBALANCE_THRESHOLD){
             debug("Unbalanced difference: " + loadDifference);
-            for(Integer i = 0; i < loadDifference / 2; i++){
+            for(int i = 0; i < loadDifference / 2; i++){
                 Request request = from.peekRequest();
                 if(request != null) {
                     request.unbalance();
@@ -107,8 +119,8 @@ public abstract class MySystemAbstract implements MySystemInterface{
 
     private void enterMaintenanceMode(){
         debug("entered maintenance mode");
-        for(Pair<Transformer, Supplier> pair : suppliers){
-            Supplier supplier = pair.getValue();
+        for(Pair<Transformer, Supplier> supplierPair : supplierPairs){
+            Supplier supplier = supplierPair.getValue();
             supplier.interrupt();
             if(DEBUG_MODE) {
                 supplier.logEventsDetails();
@@ -118,8 +130,8 @@ public abstract class MySystemAbstract implements MySystemInterface{
         Integer successCount = 0;
         Integer rejectedCount = 0;
         Integer totalCostCount = 0;
-        for(Pair<Transformer, Supplier> pair : suppliers){
-            Supplier supplier = pair.getValue();
+        for(Pair<Transformer, Supplier> supplierPair : supplierPairs){
+            Supplier supplier = supplierPair.getValue();
             supplier.logEventsSummary();
             requestCount += supplier.getRequestCount();
             successCount += supplier.getSuccessCount();
@@ -141,9 +153,9 @@ public abstract class MySystemAbstract implements MySystemInterface{
     }
 
     protected Transformer getTransformerFor(Supplier supplier){
-        for(Pair<Transformer, Supplier> pair : suppliers){
-            if(pair.getValue().equals(supplier)){
-                return pair.getKey();
+        for(Pair<Transformer, Supplier> supplierPair : supplierPairs){
+            if(supplierPair.getValue().equals(supplier)){
+                return supplierPair.getKey();
             }
         }
         return null;

@@ -1,8 +1,12 @@
 package ca.uqac.performance.original;
 
 import static ca.uqac.performance.original.Config.*;
-import static ca.uqac.performance.original.Debug.debug;
+import static ca.uqac.performance.original.util.Debug.debug;
 
+/**
+ * Request objects send from suppliers to transformers.
+ * The same object us sent back from transformers to suppliers when request is responded.
+ */
 public class Request {
     private long processingTime = (long) (Math.random() * (REQUEST_PROCESS_TIME_MAX_MS - REQUEST_PROCESS_TIME_MIN_MS + 1) + REQUEST_PROCESS_TIME_MIN_MS);
     private Boolean success;
