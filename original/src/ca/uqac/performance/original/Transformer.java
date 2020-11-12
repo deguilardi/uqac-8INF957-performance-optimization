@@ -10,7 +10,7 @@ import static ca.uqac.performance.original.Debug.debug;
 
 public class Transformer {
 
-    enum State{
+    public enum State{
         IDLE,
         OK,
         DANGER,
@@ -39,6 +39,10 @@ public class Transformer {
 
     public Request pollRequest(){
         return buffer.poll();
+    }
+
+    public Request peekRequest(){
+        return buffer.peek();
     }
 
     public void processFor(Supplier supplier) {
@@ -76,6 +80,10 @@ public class Transformer {
         } else {
             state = State.IDLE;
         }
+    }
+
+    public State getState() {
+        return state;
     }
 
     private class Processor extends Thread{

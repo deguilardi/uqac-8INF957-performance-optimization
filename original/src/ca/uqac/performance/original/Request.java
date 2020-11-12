@@ -1,7 +1,5 @@
 package ca.uqac.performance.original;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
-
 import static ca.uqac.performance.original.Config.*;
 import static ca.uqac.performance.original.Debug.debug;
 
@@ -9,6 +7,7 @@ public class Request {
     private long processingTime = (long) (Math.random() * (REQUEST_PROCESS_TIME_MAX_MS - REQUEST_PROCESS_TIME_MIN_MS + 1) + REQUEST_PROCESS_TIME_MIN_MS);
     private Boolean success;
     private Boolean unbalanced = false;
+    private Boolean overloaded = false;
     private Integer cost = COST_DEFAULT;
 
     Request(){
@@ -30,9 +29,16 @@ public class Request {
     }
 
     public void unbalance(){
-        unbalanced = true;
-        cost = COST_IMBALANCE;
-        debug("Request balanced, with cost: " + cost);
+        if(!unbalanced) {
+            unbalanced = true;
+            cost += COST_IMBALANCE;
+            debug("Request balanced, with cost: " + cost);
+        }
+    }
+
+    public void overload() {
+        overloaded = true;
+        cost += COST_OVERLOAD;
     }
 
     public Boolean isSuccessful() {
@@ -41,6 +47,10 @@ public class Request {
 
     public Boolean isUnbalanced() {
         return unbalanced;
+    }
+
+    public boolean isOverloaded() {
+        return overloaded;
     }
 
     public boolean isLost() {

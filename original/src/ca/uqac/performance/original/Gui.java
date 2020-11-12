@@ -44,6 +44,12 @@ public class Gui extends JFrame{
                     Transformer transformer = pair.getKey();
                     JProgressBar progressBar = instance.progressBars.get(transformer.getId());
                     progressBar.setValue(transformer.getLoad());
+                    switch (transformer.getState()){
+                        case IDLE: progressBar.setString("idle"); break;
+                        case OK: progressBar.setString("ok"); break;
+                        case DANGER: progressBar.setString("danger"); break;
+                        case MAX: progressBar.setString("max"); break;
+                    }
                 }
             }
         }).start();
@@ -54,6 +60,7 @@ public class Gui extends JFrame{
 
         JProgressBar progressBar = new JProgressBar(0, TRANSFORMER_BUFFER_MAX);
         progressBar.setValue(0);
+        progressBar.setStringPainted(true);
         panel.add(progressBar);
         barsPanel.add(panel);
 

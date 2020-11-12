@@ -17,8 +17,8 @@ public class MySystemOptimized extends MySystemAbstract implements MySystemInter
 
     @Override
     protected void loop(Integer i){
-        debug("==================== loop " + i + " ====================");
         balanceTransformers();
+        super.loop(i);
         for(Pair<Transformer, Supplier> pair : suppliers){
             Transformer transformer = pair.getKey();
             Supplier supplier = pair.getValue();
@@ -51,7 +51,6 @@ public class MySystemOptimized extends MySystemAbstract implements MySystemInter
             for(Integer i = 0; i < loadDifference / 2; i++){
                 Request request = from.pollRequest();
                 if(request != null) {
-                    request.unbalance();
                     to.pushRequest(request, respondToSupplier);
                 }
             }
