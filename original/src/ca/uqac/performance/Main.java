@@ -1,16 +1,16 @@
-package ca.uqac.performance.original;
+package ca.uqac.performance;
 
 import javafx.util.Pair;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import static ca.uqac.performance.original.Config.NUM_SUPPLIERS;
-import static ca.uqac.performance.original.Config.OPTIMIZED_MODE;
-import static ca.uqac.performance.original.util.Debug.output;
-import static ca.uqac.performance.original.Gui.initGui;
-import static ca.uqac.performance.original.system.MySystem.initSystemWith;
-import static ca.uqac.performance.original.system.MySystem.systemInstance;
+import static ca.uqac.performance.Config.NUM_SUPPLIERS;
+import static ca.uqac.performance.Config.SYSTEM_ADAPTER;
+import static ca.uqac.performance.util.Debug.output;
+import static ca.uqac.performance.Gui.initGui;
+import static ca.uqac.performance.system.MySystem.initSystemWith;
+import static ca.uqac.performance.system.MySystem.systemInstance;
 
 /**
  * Main class.
@@ -27,24 +27,12 @@ public class Main {
      * Run this method to start the process.
      */
     public static void main(String[] args){
-        initSystem();
+        initSystemWith(SYSTEM_ADAPTER);
         initSupplierPairs();
-        systemInstance().setSuppliers(supplierPairs);
+        systemInstance().set(supplierPairs);
         initGui(supplierPairs);
         systemInstance().run();
         startSuppliers();
-    }
-
-    /**
-     * Will start the system based on OPTIMIZED_MODE.
-     * The OPTIMIZED_MODE can be set in Config.class.
-     */
-    private static void initSystem(){
-        if(OPTIMIZED_MODE) {
-            initSystemWith("ca.uqac.performance.original.system.adapter.MySystemAdapterOptimized");
-        } else {
-            initSystemWith("ca.uqac.performance.original.system.adapter.MySystemAdapterDefault");
-        }
     }
 
     /**

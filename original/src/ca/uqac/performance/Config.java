@@ -1,4 +1,4 @@
-package ca.uqac.performance.original;
+package ca.uqac.performance;
 
 /**
  * This simple config file holds all parameters needed to configure and balance the system.
@@ -12,22 +12,9 @@ public class Config {
      * #                LOOKING FOR                  # *
      * ############################################### *
      ***************************************************/
-    // true => use default system
-    // false => use optimized system
-    public static final Boolean OPTIMIZED_MODE = true;
-
-    /***************************************************
-     * ############################################### *
-     ***************************************************/
-
-    // Turn on/off imbalance optimization (depends on OPTIMIZED_MODE)
-    public static final Boolean OPTIMIZE_IMBALANCE = true;
-
-    // Turn on/off overload optimization (depends on OPTIMIZED_MODE)
-    public static final Boolean OPTIMIZE_OVERLOAD = true;
-
-    // Define the imbalance threshold
-    public static final Integer OPTIMIZATION_IMBALANCE_THRESHOLD = 2;
+    // Full name for the system's adapter class
+    public static final String SYSTEM_ADAPTER = "ca.uqac.performance.system.MyAdapterOptimized";
+//    public static final String SYSTEM_ADAPTER = "ca.uqac.performance.system.MyAdapterDefault";
 
     /***************************************************
      * ############################################### *
@@ -41,6 +28,7 @@ public class Config {
     public static final Integer NUM_SUPPLIERS = 4;
     public static final Integer LOOP_INTERVAL = 2;
     public static final Integer NUM_LOOPS_TO_MAINTENANCE = 5000;
+    public static final Integer IMBALANCE_THRESHOLD = 2;
 
     /**
      * This block defines costs constants.

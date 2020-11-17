@@ -1,13 +1,13 @@
-package ca.uqac.performance.original;
+package ca.uqac.performance;
 
-import ca.uqac.performance.original.util.Sleeper;
+import ca.uqac.performance.util.Sleeper;
 import javafx.util.Pair;
 
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ca.uqac.performance.original.Config.*;
+import static ca.uqac.performance.Config.*;
 
 /**
  * A little user interface to display the transformers' loads

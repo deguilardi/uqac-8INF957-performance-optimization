@@ -1,6 +1,6 @@
-package ca.uqac.performance.original.util;
+package ca.uqac.performance.util;
 
-import static ca.uqac.performance.original.Config.DEBUG_MODE;
+import static ca.uqac.performance.Config.DEBUG_MODE;
 
 /**
  * Little helper to write debug or output

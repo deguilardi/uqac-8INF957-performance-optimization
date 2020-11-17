@@ -1,4 +1,4 @@
-package ca.uqac.performance.original.util;
+package ca.uqac.performance.util;
 
 /**
  * Little helper to sleep threads.

@@ -1,21 +1,20 @@
-package ca.uqac.performance.original;
+package ca.uqac.performance;
 
-import static ca.uqac.performance.original.Config.*;
-import static ca.uqac.performance.original.util.Debug.debug;
+import ca.uqac.performance.util.Debug;
 
 /**
  * Request objects send from suppliers to transformers.
  * The same object us sent back from transformers to suppliers when request is responded.
  */
 public class Request {
-    private long processingTime = (long) (Math.random() * (REQUEST_PROCESS_TIME_MAX_MS - REQUEST_PROCESS_TIME_MIN_MS + 1) + REQUEST_PROCESS_TIME_MIN_MS);
+    private long processingTime = (long) (Math.random() * (Config.REQUEST_PROCESS_TIME_MAX_MS - Config.REQUEST_PROCESS_TIME_MIN_MS + 1) + Config.REQUEST_PROCESS_TIME_MIN_MS);
     private Boolean success;
     private Boolean unbalanced = false;
     private Boolean overloaded = false;
-    private Integer cost = COST_DEFAULT;
+    private Integer cost = Config.COST_DEFAULT;
 
     Request(){
-        debug("Creating request with processingTime: " + processingTime);
+        Debug.debug("Creating request with processingTime: " + processingTime);
     }
 
     public void respond(){
@@ -24,8 +23,8 @@ public class Request {
 
     public void reject(){
         success = false;
-        cost = COST_REJECTION;
-        debug("Request rejected, with cost: " + cost);
+        cost = Config.COST_REJECTION;
+        Debug.debug("Request rejected, with cost: " + cost);
     }
 
     public Integer getCost(){
@@ -35,14 +34,14 @@ public class Request {
     public void unbalance(){
         if(!unbalanced) {
             unbalanced = true;
-            cost += COST_IMBALANCE;
-            debug("Request balanced, with cost: " + cost);
+            cost += Config.COST_IMBALANCE;
+            Debug.debug("Request balanced, with cost: " + cost);
         }
     }
 
     public void overload() {
         overloaded = true;
-        cost += COST_OVERLOAD;
+        cost += Config.COST_OVERLOAD;
     }
 
     public Boolean isSuccessful() {

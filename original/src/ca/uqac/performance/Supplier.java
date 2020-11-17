@@ -1,13 +1,11 @@
-package ca.uqac.performance.original;
+package ca.uqac.performance;
 
-import ca.uqac.performance.original.util.Sleeper;
+import ca.uqac.performance.util.Sleeper;
+import ca.uqac.performance.system.MySystem;
+import ca.uqac.performance.util.Debug;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static ca.uqac.performance.original.Config.*;
-import static ca.uqac.performance.original.util.Debug.output;
-import static ca.uqac.performance.original.system.MySystem.systemInstance;
 
 public class Supplier extends Thread{
 
@@ -26,7 +24,7 @@ public class Supplier extends Thread{
         super.run();
 
         while(true){
-            if(!Sleeper.unsafeSleep(REQUEST_INTERVAL)){
+            if(!Sleeper.unsafeSleep(Config.REQUEST_INTERVAL)){
                 break;
             }
             generateRequest();
@@ -36,7 +34,7 @@ public class Supplier extends Thread{
     void generateRequest(){
         Request request = new Request();
         requests.add(request);
-        systemInstance().pushRequest(request, this);
+        MySystem.systemInstance().push(request, this);
     }
 
     public void receiveResponseFor(Request request){
@@ -49,9 +47,9 @@ public class Supplier extends Thread{
     }
 
     public void logEventsDetails(){
-        output("==================== LOGGING EVENTS FOR SUPPLIER #" +id+ " ====================");
+        Debug.output("==================== LOGGING EVENTS FOR SUPPLIER #" +id+ " ====================");
         for(Request request : requests){
-            output(request.toString());
+            Debug.output(request.toString());
         }
     }
 
@@ -74,11 +72,11 @@ public class Supplier extends Thread{
             } else if(request.isSuccessful()){
                 if(request.isUnbalanced()){
                     inbalanceCount++;
-                    inbalanceCost += COST_IMBALANCE;
+                    inbalanceCost += Config.COST_IMBALANCE;
                 }
                 if(request.isOverloaded()){
                     overloadCount++;
-                    overloadCost += COST_OVERLOAD;
+                    overloadCost += Config.COST_OVERLOAD;
                 }
                 successCount++;
                 successCost += 1;
@@ -91,17 +89,17 @@ public class Supplier extends Thread{
             }
         }
 
-        output("");
-        output("==== SUMMARY OF EVENTS FOR SUPPLIER #" +id+ " ====");
-        output("|     type      |    qtd.    |    cost    |");
-        output("| ------------- | ---------- | ---------- |");
-        output("| default cost  | " + String.format("%" + 10 + "s", successCount) + " | " + String.format("%" + 10 + "s", successCost) + " |");
-        output("| inbalan. cost | " + String.format("%" + 10 + "s", inbalanceCount) + " | " + String.format("%" + 10 + "s", inbalanceCost) + " |");
-        output("| overload cost | " + String.format("%" + 10 + "s", overloadCount) + " | " + String.format("%" + 10 + "s", overloadCost) + " |");
-        output("| rejected      | " + String.format("%" + 10 + "s", rejectedCount) + " | " + String.format("%" + 10 + "s", rejectedCost) + " |");
-        output("| lost          | " + String.format("%" + 10 + "s", lostCount) + " |     n/a    |");
-        output("| total         | " + String.format("%" + 10 + "s", numRequests) + " | " + String.format("%" + 10 + "s", totalCost) + " |");
-        output("| ------------- | ---------- | ---------- |");
+        Debug.output("");
+        Debug.output("==== SUMMARY OF EVENTS FOR SUPPLIER #" +id+ " ====");
+        Debug.output("|     type      |    qtd.    |    cost    |");
+        Debug.output("| ------------- | ---------- | ---------- |");
+        Debug.output("| default cost  | " + String.format("%" + 10 + "s", successCount) + " | " + String.format("%" + 10 + "s", successCost) + " |");
+        Debug.output("| imbalan. cost | " + String.format("%" + 10 + "s", inbalanceCount) + " | " + String.format("%" + 10 + "s", inbalanceCost) + " |");
+        Debug.output("| overload cost | " + String.format("%" + 10 + "s", overloadCount) + " | " + String.format("%" + 10 + "s", overloadCost) + " |");
+        Debug.output("| rejected      | " + String.format("%" + 10 + "s", rejectedCount) + " | " + String.format("%" + 10 + "s", rejectedCost) + " |");
+        Debug.output("| lost          | " + String.format("%" + 10 + "s", lostCount) + " |     n/a    |");
+        Debug.output("| total         | " + String.format("%" + 10 + "s", numRequests) + " | " + String.format("%" + 10 + "s", totalCost) + " |");
+        Debug.output("| ------------- | ---------- | ---------- |");
     }
 
     public Integer getRequestCount() {

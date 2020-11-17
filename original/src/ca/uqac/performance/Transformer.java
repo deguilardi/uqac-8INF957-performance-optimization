@@ -1,12 +1,12 @@
-package ca.uqac.performance.original;
+package ca.uqac.performance;
 
-import ca.uqac.performance.original.util.Sleeper;
+import ca.uqac.performance.util.Sleeper;
 
 import java.util.LinkedList;
 import java.util.Queue;
 
-import static ca.uqac.performance.original.Config.*;
-import static ca.uqac.performance.original.util.Debug.debug;
+import static ca.uqac.performance.Config.*;
+import static ca.uqac.performance.util.Debug.debug;
 
 public class Transformer {
 
