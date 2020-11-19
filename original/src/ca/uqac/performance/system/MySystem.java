@@ -4,6 +4,7 @@ import ca.uqac.performance.Transformer;
 import ca.uqac.performance.Request;
 import ca.uqac.performance.Supplier;
 import ca.uqac.performance.util.Sleeper;
+import ca.uqac.performance.util.Stats;
 import javafx.util.Pair;
 
 import java.lang.reflect.InvocationTargetException;
@@ -13,9 +14,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static ca.uqac.performance.Config.*;
-import static ca.uqac.performance.Config.NUM_SUPPLIERS;
 import static ca.uqac.performance.util.Debug.debug;
 import static ca.uqac.performance.util.Debug.output;
+import static ca.uqac.performance.util.Stats.format;
 
 public class MySystem implements MySystemInterface{
 
@@ -132,35 +133,47 @@ public class MySystem implements MySystemInterface{
     }
 
     private void enterMaintenanceMode(){
-        debug("entered maintenance mode");
-        for(Pair<Transformer, Supplier> supplierPair : supplierPairs){
-            Supplier supplier = supplierPair.getValue();
-            supplier.interrupt();
-            if(DEBUG_MODE) {
-                supplier.logEventsDetails();
-            }
-        }
-        Integer requestCount = 0;
-        Integer successCount = 0;
-        Integer rejectedCount = 0;
-        Integer totalCostCount = 0;
+        Stats success = new Stats(COST_DEFAULT);
+        Stats imbalanced = new Stats(COST_IMBALANCE);
+        Stats overloaded = new Stats(COST_OVERLOAD);
+        Stats rejected = new Stats(COST_REJECTION);
+        Stats lost = new Stats();
+        Stats totalCost = new Stats();
+        int totalQtd = 0;
+
         for(Pair<Transformer, Supplier> supplierPair : supplierPairs){
             Supplier supplier = supplierPair.getValue();
             supplier.logEventsSummary();
-            requestCount += supplier.getRequestCount();
-            successCount += supplier.getSuccessCount();
-            rejectedCount += supplier.getRejectedCount();
-            totalCostCount += supplier.getTotalCost();
+            success.calc(supplier.getSuccessCount());
+            imbalanced.calc(supplier.getImbalancedCount());
+            overloaded.calc(supplier.getOverloadedCount());
+            rejected.calc(supplier.getRejectedCount());
+            lost.calc(supplier.getLostCount());
+            totalCost.calc(supplier.getTotalCost());
+            totalQtd += supplier.getRequestCount();
         }
 
         output("");
-        output("============ MY SYSTEM RESULTS ============");
-        output("request avg  : " + String.format("%" + 10 + "s", requestCount / NUM_SUPPLIERS));
-        output("success avg  : " + String.format("%" + 10 + "s", successCount / NUM_SUPPLIERS));
-        output("rejected avg : " + String.format("%" + 10 + "s", rejectedCount / NUM_SUPPLIERS));
-        output("lost avg     : " + String.format("%" + 10 + "s", (requestCount - successCount - rejectedCount) / NUM_SUPPLIERS));
-        output("cost avg     : " + String.format("%" + 10 + "s", totalCostCount / NUM_SUPPLIERS));
-        output("cost total   : " + String.format("%" + 10 + "s", totalCostCount));
+        output("============================= MY SYSTEM RESULTS ===============================");
+        output("| responses  |    qtd.    | cost (tot) | cost (min) | cost (max) | cost (avg) |");
+        output("| ---------- | ---------- | ---------- | ---------- | ---------- | ---------- |");
+        output("| success    | " + format(success.tot()) + " | " + format(success.totCost()) + " | " + format(success.minCost()) + " | " + format(success.maxCost()) + " | " + format(success.avgCost()) + " |");
+        output("|    imbala. | " + format(imbalanced.tot()) + " | " + format(imbalanced.totCost()) + " | " + format(imbalanced.minCost()) + " | " + format(imbalanced.maxCost()) + " | " + format(imbalanced.avgCost()) + " |");
+        output("|    overlo. | " + format(overloaded.tot()) + " | " + format(overloaded.totCost()) + " | " + format(overloaded.minCost()) + " | " + format(overloaded.maxCost()) + " | " + format(overloaded.avgCost()) + " |");
+        output("| rejected   | " + format(rejected.tot()) + " | " + format(rejected.totCost()) + " | " + format(rejected.minCost()) + " | " + format(rejected.maxCost()) + " | " + format(rejected.avgCost()) + " |");
+        output("| lost       | " + format(lost.tot()) + " |     n/a    |     n/a    |     n/a    |     n/a    |");
+        output("| total      | " + format(totalQtd) + " | " + format(totalCost.totCost()) + " | " + format(totalCost.minCost()) + " | " + format(totalCost.maxCost()) + " | " + format(totalCost.avgCost()) + " |");
+        output("| ---------- | ---------- | ---------- | ---------- | ---------- | ---------- |");
+
+        output("");
+        output("======================= MY SYSTEM RESULTS (with tabs) ==========================");
+        output(success.tot() + "\t" + success.totCost() + "\t" + success.minCost() + "\t" + success.maxCost() + "\t" + success.avgCost());
+        output(imbalanced.tot() + "\t" + imbalanced.totCost() + "\t" + imbalanced.minCost() + "\t" + imbalanced.maxCost() + "\t" + imbalanced.avgCost());
+        output(overloaded.tot() + "\t" + overloaded.totCost() + "\t" + overloaded.minCost() + "\t" + overloaded.maxCost() + "\t" + overloaded.avgCost());
+        output(rejected.tot() + "\t" + rejected.totCost() + "\t" + rejected.minCost() + "\t" + rejected.maxCost() + "\t" + rejected.avgCost());
+        output(lost.tot() + "\tn/a\tn/a\tn/a\tn/a");
+        output(totalQtd + "\t" + totalCost.totCost() + "\t" + totalCost.minCost() + "\t" + totalCost.maxCost() + "\t" + totalCost.avgCost());
+        output("--------------------------------------------------------------------------------");
 
         isRunning = false;
         System.exit(0);
@@ -173,5 +186,9 @@ public class MySystem implements MySystemInterface{
             }
         }
         return null;
+    }
+
+    Pair<Transformer, Supplier> getSupplierPair(int index){
+        return supplierPairs.get(index);
     }
 }

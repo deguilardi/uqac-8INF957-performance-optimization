@@ -10,8 +10,8 @@ import java.util.Comparator;
 import java.util.List;
 
 import static ca.uqac.performance.Config.*;
+import static ca.uqac.performance.Transformer.State.*;
 import static ca.uqac.performance.util.Debug.debug;
-import static sun.security.krb5.internal.LoginOptions.MAX;
 
 /**
  * The optimized system.
@@ -22,8 +22,6 @@ import static sun.security.krb5.internal.LoginOptions.MAX;
 public class MyAdapterOptimized implements MyAdapterInterface {
 
     private Integer currentLoop = -1;
-    // Control what suppliers are cooling down if OPTIMIZE_OVERLOAD is true
-    private boolean[] blockages;
     List< Pair<Transformer, Supplier> > supplierPairsCopy;
 
     /**
@@ -33,7 +31,6 @@ public class MyAdapterOptimized implements MyAdapterInterface {
     @Override
     public void preLoop(Integer i) {
         if(currentLoop != i){
-            blockages = new boolean[NUM_SUPPLIERS];
             supplierPairsCopy = new ArrayList<>(NUM_SUPPLIERS);
         }
     }
@@ -45,7 +42,6 @@ public class MyAdapterOptimized implements MyAdapterInterface {
     @Override
     public void postLoop(Integer i) {
         balanceTransformers();
-        checkLoad();
     }
 
     /**
@@ -68,11 +64,7 @@ public class MyAdapterOptimized implements MyAdapterInterface {
      */
     @Override
     public Boolean canPush(Request request, Supplier fromSupplier, Transformer toTransformer) {
-        if (blockages[toTransformer.getId()]) {
-            return false;
-        } else {
-            return toTransformer.getLoad() != MAX;
-        }
+        return toTransformer.getState() != MAX && toTransformer.getState() != DANGER;
     }
 
     /**
@@ -110,22 +102,6 @@ public class MyAdapterOptimized implements MyAdapterInterface {
                 if(request != null) {
                     to.pushRequest(request, respondToSupplier);
                 }
-            }
-        }
-    }
-
-    /**
-     * Check and block transformers with buffer load in "danger".
-     * The danger trigger is set on TRANSFORMER_BUFFER_DANGER in Config.java.
-     */
-    private void checkLoad() {
-        for(int i = 0; i < blockages.length; i++){
-            boolean blocked = blockages[i];
-            Transformer transformer = supplierPairsCopy.get(i).getKey();
-            if(blocked && transformer.getState() == Transformer.State.OK){
-                blockages[i] = false;
-            } else if (transformer.getState() == Transformer.State.DANGER){
-                blockages[i] = true;
             }
         }
     }
